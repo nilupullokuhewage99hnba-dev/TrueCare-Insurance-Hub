@@ -1,0 +1,6 @@
+{
+  "name": "TrueCare Nilupul Lokuhewage",
+  "description": "Mobile-first personal branding and life insurance client app for Nilupul Thisarinda Lokuhewage (Senior Field Executive & Team Manager - HNB Life) powered by live Google Sheets and Gmail.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
