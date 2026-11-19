@@ -1,0 +1,9 @@
+# Vite + React (AI Studio export). Netlify installs dependencies with Bun
+# automatically because the repo has a bun.lock file.
+[build]
+  command = "bun run build"
+  publish = "dist"
+
+[build.environment]
+  # Vite 8 requires Node 20.19+ or 22.12+
+  NODE_VERSION = "22"
