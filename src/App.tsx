@@ -3,6 +3,7 @@ import {
   Calendar,
   Gift,
   Home,
+  MessageCircle,
   Phone,
   Shield,
   UserPlus,
@@ -15,6 +16,7 @@ import {
 } from './types';
 import {
   ADVISOR,
+  buildWhatsAppUrl,
   DEFAULT_ADVISOR_PHOTO,
   loadInitialDataset,
   STARTER_PRODUCTS,
@@ -114,6 +116,19 @@ export default function App() {
 
   const advisorPhotoUrl = localPhotoOverride || advisor.photoUrl || DEFAULT_ADVISOR_PHOTO;
 
+  const livePhoneTel = advisor.phoneTel || ADVISOR.phoneTel;
+  const livePhoneDisplay = advisor.phoneDisplay || ADVISOR.phoneDisplay;
+  const liveWhatsappNumber = (advisor.whatsappNumber || ADVISOR.whatsappNumber || '').replace(/\D/g, '');
+  const liveWhatsappDisplay = advisor.whatsappDisplay || ADVISOR.whatsappDisplay;
+
+  const floatingWhatsAppUrl = liveWhatsappNumber
+    ? `https://wa.me/${liveWhatsappNumber}?text=${encodeURIComponent(
+        'Hello Nilupul, I am browsing the TrueCare app and would like advice on HNB Life plans.'
+      )}`
+    : buildWhatsAppUrl(
+        'Hello Nilupul, I am browsing the TrueCare app and would like advice on HNB Life plans.'
+      );
+
   const handleUpdateLocalPhoto = (photoValue: string) => {
     setLocalPhotoOverride(photoValue);
     if (typeof window !== 'undefined') {
@@ -158,24 +173,38 @@ export default function App() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col bg-[#F8FAFC] text-[#0F172A]">
-      {/* Desktop Top Bar (Strict 3-Zone Contract) & Compact Mobile Header (48px) */}
-      <header className="sticky top-0 z-30 h-12 md:h-16 bg-white/95 backdrop-blur-md border-b border-slate-200/80">
-        <div className="max-w-6xl mx-auto h-full px-4 sm:px-6 flex items-center justify-between gap-8">
-          {/* Zone 1: Single-line Brand Emblem + Wordmark */}
+    <div className="min-h-screen flex flex-col bg-gradient-to-b from-[#F8FAFC] via-[#F8FAFC] to-[#F1F5F9] text-[#0F172A]">
+      {/* Global Smooth Tab Transition Animation */}
+      <style>{`
+        @keyframes tcPageEnter {
+          from { opacity: 0; transform: translateY(8px); }
+          to { opacity: 1; transform: translateY(0); }
+        }
+        .tc-page-enter {
+          animation: tcPageEnter 0.32s cubic-bezier(0.16, 1, 0.3, 1) both;
+        }
+      `}</style>
+
+      {/* Top Accent Bar */}
+      <div className="h-[3px] w-full bg-gradient-to-r from-[#0B2545] via-[#D4A84F] to-[#0B2545]" />
+
+      {/* Desktop Top Bar & Compact Mobile Header */}
+      <header className="sticky top-0 z-30 h-14 md:h-16 bg-white/90 backdrop-blur-lg border-b border-slate-200/80 shadow-[0_2px_12px_-6px_rgba(11,37,69,0.08)]">
+        <div className="max-w-6xl mx-auto h-full px-4 sm:px-6 flex items-center justify-between gap-6">
+          {/* Zone 1: Brand Emblem + Wordmark */}
           <button
             type="button"
             onClick={() => handleNavigate('home')}
             aria-label="TrueCare Home"
-            className="whitespace-nowrap shrink-0 cursor-pointer"
+            className="whitespace-nowrap shrink-0 cursor-pointer active:scale-[0.98] transition-transform"
           >
             <TrueCareLogo variant="header" />
           </button>
 
-          {/* Zone 2: 5 Single-line navigation links (Desktop) */}
+          {/* Zone 2: Desktop Navigation Pills */}
           <nav
             aria-label="Primary navigation"
-            className="hidden md:flex items-center gap-6 text-sm font-medium"
+            className="hidden md:flex items-center gap-1.5 text-sm font-medium"
           >
             {NAV_ITEMS.map((item) => {
               const active = activeTab === item.id;
@@ -184,10 +213,10 @@ export default function App() {
                   key={item.id}
                   type="button"
                   onClick={() => handleNavigate(item.id)}
-                  className={`py-1 transition-colors whitespace-nowrap shrink-0 cursor-pointer border-b-2 ${
+                  className={`px-3.5 py-2 rounded-xl transition-all whitespace-nowrap shrink-0 cursor-pointer ${
                     active
-                      ? 'text-[#0B2545] border-[#B4832D]'
-                      : 'text-slate-600 border-transparent hover:text-[#0B2545]'
+                      ? 'bg-[#0B2545] text-white shadow-xs'
+                      : 'text-slate-600 hover:text-[#0B2545] hover:bg-slate-100/80'
                   }`}
                 >
                   {item.label}
@@ -196,19 +225,22 @@ export default function App() {
             })}
           </nav>
 
-          {/* Zone 3: Single Primary Call Action (071 941 4247) */}
+          {/* Zone 3: Primary Call Action */}
           <a
-            href={ADVISOR.phoneTel}
-            className="inline-flex items-center gap-1.5 min-h-[36px] md:min-h-[40px] px-3.5 md:px-4 rounded-xl bg-[#0B2545] text-white text-xs font-medium hover:bg-[#133863] transition-colors whitespace-nowrap shrink-0"
+            href={livePhoneTel}
+            className="inline-flex items-center gap-1.5 min-h-[38px] md:min-h-[40px] px-3.5 md:px-4 rounded-xl bg-gradient-to-r from-[#0B2545] to-[#163B6B] text-white text-xs font-semibold shadow-xs hover:shadow-md hover:-translate-y-0.5 active:scale-[0.98] transition-all whitespace-nowrap shrink-0"
           >
-            <Phone className="w-3.5 h-3.5" />
-            <span className="tabular-nums">{ADVISOR.phoneDisplay}</span>
+            <Phone className="w-3.5 h-3.5 text-[#E8C574]" />
+            <span className="tabular-nums">{livePhoneDisplay}</span>
           </a>
         </div>
       </header>
 
-      {/* Main Content Area */}
-      <main className="flex-1 max-w-6xl w-full mx-auto px-4 sm:px-6 py-6 md:py-10 pb-24 md:pb-14">
+      {/* Main Content Area with Smooth Tab Transition */}
+      <main
+        key={activeTab}
+        className="tc-page-enter flex-1 max-w-6xl w-full mx-auto px-4 sm:px-6 py-6 md:py-10 pb-28 md:pb-16"
+      >
         {activeTab === 'home' && (
           <HomeView
             advisor={advisor}
@@ -264,28 +296,48 @@ export default function App() {
         )}
       </main>
 
+      {/* Floating WhatsApp Quick-Chat Button */}
+      <a
+        href={floatingWhatsAppUrl}
+        target="_blank"
+        rel="noreferrer"
+        aria-label="Chat on WhatsApp"
+        title={`WhatsApp ${liveWhatsappDisplay}`}
+        className="fixed right-4 bottom-[78px] md:bottom-6 md:right-6 z-40 inline-flex items-center gap-2 h-12 px-4 rounded-full bg-gradient-to-r from-[#059669] to-[#0F766E] text-white text-xs font-semibold shadow-[0_8px_24px_-4px_rgba(5,150,105,0.55)] hover:shadow-[0_12px_28px_-4px_rgba(5,150,105,0.65)] hover:-translate-y-0.5 active:scale-95 transition-all"
+      >
+        <MessageCircle className="w-5 h-5 shrink-0" />
+        <span className="hidden sm:inline">WhatsApp Advisor</span>
+      </a>
+
       {/* Clean Quiet Footer (Desktop) */}
       <footer className="hidden md:block border-t border-slate-200/80 bg-white">
         <div className="max-w-6xl mx-auto px-6 py-6 flex flex-wrap items-center justify-between gap-4 text-xs text-slate-500">
-          <p>
+          <p className="font-medium text-slate-600">
             {ADVISOR.appName} · {advisor.role}
           </p>
           <div className="flex items-center gap-4">
-            <a href={ADVISOR.phoneTel} className="font-mono-tabular hover:text-[#0B2545]">
-              Call: {ADVISOR.phoneDisplay}
+            <a href={livePhoneTel} className="font-mono-tabular hover:text-[#0B2545] transition-colors">
+              Call: {livePhoneDisplay}
             </a>
             <span aria-hidden="true">·</span>
-            <span className="font-mono-tabular">WhatsApp: {ADVISOR.whatsappDisplay}</span>
+            <a
+              href={floatingWhatsAppUrl}
+              target="_blank"
+              rel="noreferrer"
+              className="font-mono-tabular hover:text-emerald-700 transition-colors"
+            >
+              WhatsApp: {liveWhatsappDisplay}
+            </a>
           </div>
         </div>
       </footer>
 
-      {/* Mobile Fixed Bottom Thumb Navigation Bar (60px height — keeps aggregate sticky <= 13%) */}
+      {/* Mobile Fixed Bottom Thumb Navigation Bar (Modern Pill Style) */}
       <nav
         aria-label="Mobile bottom navigation"
-        className="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-white/95 backdrop-blur-md border-t border-slate-200/90 pb-safe"
+        className="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-white/95 backdrop-blur-lg border-t border-slate-200/90 shadow-[0_-4px_20px_-6px_rgba(11,37,69,0.1)] pb-safe"
       >
-        <div className="grid grid-cols-5 items-center h-[60px]">
+        <div className="grid grid-cols-5 items-center h-[64px] px-1.5">
           {NAV_ITEMS.map(({ id, shortLabel, Icon }) => {
             const active = activeTab === id;
             return (
@@ -293,18 +345,24 @@ export default function App() {
                 key={id}
                 type="button"
                 onClick={() => handleNavigate(id)}
-                className={`flex flex-col items-center justify-center min-h-[48px] transition-colors cursor-pointer ${
-                  active ? 'text-[#0B2545]' : 'text-slate-500 hover:text-slate-800'
-                }`}
+                className="flex flex-col items-center justify-center min-h-[48px] cursor-pointer active:scale-95 transition-transform"
               >
-                <Icon
-                  className={`w-[21px] h-[21px] ${
-                    active ? 'text-[#0B2545] stroke-[2.25]' : 'stroke-[1.75]'
-                  }`}
-                />
                 <span
-                  className={`text-[10px] mt-1 tracking-tight whitespace-nowrap ${
-                    active ? 'font-semibold text-[#0B2545]' : 'font-medium'
+                  className={`flex items-center justify-center w-11 h-7 rounded-full transition-all duration-200 ${
+                    active
+                      ? 'bg-[#0B2545] text-[#F3D58D] shadow-xs'
+                      : 'text-slate-500 hover:text-slate-800'
+                  }`}
+                >
+                  <Icon
+                    className={`w-[18px] h-[18px] ${
+                      active ? 'stroke-[2.25]' : 'stroke-[1.75]'
+                    }`}
+                  />
+                </span>
+                <span
+                  className={`text-[10px] mt-1 tracking-tight whitespace-nowrap transition-colors ${
+                    active ? 'font-bold text-[#0B2545]' : 'font-medium text-slate-500'
                   }`}
                 >
                   {shortLabel}
