@@ -19,6 +19,7 @@ interface EventsOffersViewProps {
 const FILTER_OPTIONS: Array<'All' | OfferType> = ['All', 'Free Program', 'Event', 'Special Offer'];
 
 const GOLDEN_BEGINNING_IMAGE_URL = 'https://i.ibb.co/HTFhyNY9/IMG-20261128-WA0000.jpg';
+const SIGNATURE_MEMBERS_IMAGE_URL = 'https://i.ibb.co/QvPk2H1n/IMG-20261128-WA0001.jpg';
 
 function getOfferStyling(type: OfferType) {
   switch (type) {
@@ -47,15 +48,23 @@ function getOfferStyling(type: OfferType) {
 }
 
 function resolveOfferImage(item: EventOffer): string | null {
-  const dynamicUrl = (item as EventOffer & { imageUrl?: string }).imageUrl?.trim();
-  if (dynamicUrl) return dynamicUrl;
+  const raw = item as unknown as Record<string, unknown>;
+  const candidates = [raw.bannerUrl, raw.Banner_URL, raw.imageUrl, raw.Image_URL];
+  for (const val of candidates) {
+    if (typeof val === 'string' && val.trim().startsWith('http')) {
+      return val.trim();
+    }
+  }
 
-  const isGoldenBeginningOffer =
-    item.id.toUpperCase() === 'GB-2027-01' ||
-    (item.type === 'Special Offer' && item.title.toLowerCase().includes('golden beginning'));
+  const idUpper = (item.id || '').toUpperCase().trim();
+  const titleLower = (item.title || '').toLowerCase();
 
-  if (isGoldenBeginningOffer) {
+  if (idUpper === 'GB-2027-01' || (item.type === 'Special Offer' && titleLower.includes('golden beginning'))) {
     return GOLDEN_BEGINNING_IMAGE_URL;
+  }
+
+  if (idUpper === 'GB-2027-03' || titleLower.includes('signature members')) {
+    return SIGNATURE_MEMBERS_IMAGE_URL;
   }
 
   return null;
@@ -73,7 +82,7 @@ function OfferBanner({ imageUrl, title }: { imageUrl: string; title: string }) {
         alt={title}
         referrerPolicy="no-referrer"
         onError={() => setImgError(true)}
-        className="w-full max-h-[360px] object-contain group-hover:scale-[1.02] transition-transform duration-500"
+        className="w-full max-h-[380px] object-contain group-hover:scale-[1.02] transition-transform duration-500"
       />
     </div>
   );
