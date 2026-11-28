@@ -43,10 +43,12 @@ const ESTIMATOR_GOALS = [
 ];
 
 const ESTIMATOR_BUDGETS = [
-  'Rs. 10,000 / mo',
-  'Rs. 25,000 / mo',
-  'Rs. 50,000 / mo',
-  'Rs. 100,000+ / mo',
+  'Rs. 6,000 / mo',
+  'Rs. 8,000 - 10,000 / mo',
+  'Rs. 10,000 - 20,000 / mo',
+  'Rs. 20,000 - 50,000 / mo',
+  'Rs. 50,000 - 100,000 / mo',
+  'Up to Rs. 100,000 / mo',
 ];
 
 function CategoryIllustration({ category }: { category: ProductCategory }) {
