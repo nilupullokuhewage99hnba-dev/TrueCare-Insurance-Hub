@@ -1,11 +1,13 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import {
   AlertCircle,
+  ArrowRight,
   Award,
   Check,
   Copy,
   Eye,
   EyeOff,
+  Frown,
   Gift,
   KeyRound,
   Lock,
@@ -15,7 +17,9 @@ import {
   Phone,
   ShieldCheck,
   Sparkles,
+  Trophy,
   UserPlus,
+  X,
 } from 'lucide-react';
 import { ClientRewardsResponse } from '../types';
 import { buildWhatsAppUrl } from '../data/advisorData';
@@ -26,6 +30,344 @@ interface RewardsViewProps {
   onNavigateToRefer: () => void;
   onOpenEmail: (subject?: string, body?: string) => void;
 }
+
+interface CelebrationProps {
+  clientName: string;
+  activeVouchersCount: number;
+  creditsLkr: number;
+  points: number;
+  onClose: () => void;
+}
+
+interface NoRewardsPromptProps {
+  clientName: string;
+  onClose: () => void;
+  onReferNow: () => void;
+}
+
+interface Particle {
+  x: number;
+  y: number;
+  vx: number;
+  vy: number;
+  alpha: number;
+  decay: number;
+  color: string;
+  size: number;
+}
+
+interface Raindrop {
+  x: number;
+  y: number;
+  length: number;
+  speed: number;
+  opacity: number;
+}
+
+const FIREWORK_COLORS = ['#F3D58D', '#D4A84F', '#10B981', '#38BDF8', '#FBBF24', '#FFFFFF'];
+
+const FireworksCelebration: React.FC<CelebrationProps> = ({
+  clientName,
+  activeVouchersCount,
+  creditsLkr,
+  points,
+  onClose,
+}) => {
+  const canvasRef = useRef<HTMLCanvasElement | null>(null);
+
+  useEffect(() => {
+    const autoCloseTimer = window.setTimeout(() => {
+      onClose();
+    }, 7500);
+
+    const canvas = canvasRef.current;
+    if (!canvas) {
+      return () => window.clearTimeout(autoCloseTimer);
+    }
+
+    const ctx = canvas.getContext('2d');
+    if (!ctx) {
+      return () => window.clearTimeout(autoCloseTimer);
+    }
+
+    let animationFrameId = 0;
+    const particles: Particle[] = [];
+
+    const resize = () => {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+    };
+    resize();
+    window.addEventListener('resize', resize);
+
+    const spawnBurst = (cx: number, cy: number) => {
+      const count = 42;
+      for (let i = 0; i < count; i++) {
+        const angle = (Math.PI * 2 * i) / count + (Math.random() - 0.5) * 0.25;
+        const speed = 2.2 + Math.random() * 5.2;
+        particles.push({
+          x: cx,
+          y: cy,
+          vx: Math.cos(angle) * speed,
+          vy: Math.sin(angle) * speed,
+          alpha: 1,
+          decay: 0.012 + Math.random() * 0.014,
+          color: FIREWORK_COLORS[Math.floor(Math.random() * FIREWORK_COLORS.length)],
+          size: 2 + Math.random() * 2.5,
+        });
+      }
+    };
+
+    spawnBurst(window.innerWidth * 0.25, window.innerHeight * 0.3);
+    spawnBurst(window.innerWidth * 0.75, window.innerHeight * 0.28);
+    spawnBurst(window.innerWidth * 0.5, window.innerHeight * 0.22);
+
+    const burstInterval = window.setInterval(() => {
+      const rx = window.innerWidth * (0.18 + Math.random() * 0.64);
+      const ry = window.innerHeight * (0.15 + Math.random() * 0.42);
+      spawnBurst(rx, ry);
+    }, 650);
+
+    const animate = () => {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      for (let i = particles.length - 1; i >= 0; i--) {
+        const p = particles[i];
+        p.x += p.vx;
+        p.y += p.vy;
+        p.vy += 0.06;
+        p.vx *= 0.985;
+        p.vy *= 0.985;
+        p.alpha -= p.decay;
+
+        if (p.alpha <= 0) {
+          particles.splice(i, 1);
+          continue;
+        }
+
+        ctx.save();
+        ctx.globalAlpha = Math.max(0, p.alpha);
+        ctx.fillStyle = p.color;
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.restore();
+      }
+
+      animationFrameId = window.requestAnimationFrame(animate);
+    };
+
+    animate();
+
+    return () => {
+      window.clearTimeout(autoCloseTimer);
+      window.clearInterval(burstInterval);
+      window.cancelAnimationFrame(animationFrameId);
+      window.removeEventListener('resize', resize);
+    };
+  }, [onClose]);
+
+  return (
+    <div
+      role="dialog"
+      aria-modal="true"
+      aria-label="Reward Congratulations"
+      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#071930]/80 backdrop-blur-sm"
+    >
+      <canvas
+        ref={canvasRef}
+        className="fixed inset-0 pointer-events-none w-full h-full"
+      />
+
+      <div className="relative z-10 w-full max-w-md rounded-3xl bg-gradient-to-b from-[#0B2545] to-[#071930] border border-[#E8C574]/40 p-7 sm:p-8 text-center text-white shadow-[0_24px_60px_-15px_rgba(0,0,0,0.65)]">
+        <button
+          type="button"
+          onClick={onClose}
+          aria-label="Close celebration"
+          className="absolute top-4 right-4 w-9 h-9 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center text-slate-200 transition-colors cursor-pointer"
+        >
+          <X className="w-4 h-4" />
+        </button>
+
+        <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-[#F3D58D] to-[#B4832D] flex items-center justify-center mx-auto shadow-lg shadow-[#D4A84F]/30 animate-bounce">
+          <Trophy className="w-8 h-8 text-[#071930]" />
+        </div>
+
+        <span className="mt-4 inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/10 border border-[#E8C574]/30 text-[11px] font-semibold text-[#F3D58D] tracking-wide">
+          <Sparkles className="w-3.5 h-3.5" />
+          <span>TrueCare Client Reward Unlocked</span>
+        </span>
+
+        <h2 className="mt-3 font-display text-2xl sm:text-3xl font-bold text-white">
+          Congratulations, {clientName}! 🎉
+        </h2>
+
+        <p className="mt-2 text-sm text-slate-300 leading-relaxed">
+          Thank you for trusting <span className="text-[#F3D58D] font-semibold">TrueCare with Nilupul</span>. Your exclusive rewards are ready to claim!
+        </p>
+
+        <div className="mt-5 grid grid-cols-3 gap-2.5">
+          <div className="rounded-xl bg-white/[0.07] border border-white/10 p-3">
+            <p className="text-[10px] uppercase tracking-wider text-slate-300">Vouchers</p>
+            <p className="mt-1 font-mono-tabular text-lg font-bold text-[#F3D58D]">
+              {activeVouchersCount}
+            </p>
+          </div>
+          <div className="rounded-xl bg-white/[0.07] border border-white/10 p-3">
+            <p className="text-[10px] uppercase tracking-wider text-slate-300">Credits</p>
+            <p className="mt-1 font-mono-tabular text-sm font-bold text-emerald-300">
+              LKR {creditsLkr.toLocaleString('en-LK')}
+            </p>
+          </div>
+          <div className="rounded-xl bg-white/[0.07] border border-white/10 p-3">
+            <p className="text-[10px] uppercase tracking-wider text-slate-300">Points</p>
+            <p className="mt-1 font-mono-tabular text-lg font-bold text-white">
+              {points.toLocaleString('en-LK')}
+            </p>
+          </div>
+        </div>
+
+        <button
+          type="button"
+          onClick={onClose}
+          className="mt-6 w-full inline-flex items-center justify-center gap-2 min-h-[48px] px-6 rounded-xl bg-gradient-to-r from-[#D4A84F] to-[#F3D58D] text-[#071930] text-sm font-bold shadow-md hover:brightness-105 active:scale-[0.98] transition-all cursor-pointer"
+        >
+          <Gift className="w-4 h-4" />
+          <span>View My Rewards</span>
+        </button>
+      </div>
+    </div>
+  );
+};
+
+const NoRewardsPrompt: React.FC<NoRewardsPromptProps> = ({
+  clientName,
+  onClose,
+  onReferNow,
+}) => {
+  const canvasRef = useRef<HTMLCanvasElement | null>(null);
+
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+
+    let animationFrameId = 0;
+    const drops: Raindrop[] = [];
+
+    const resize = () => {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+    };
+    resize();
+    window.addEventListener('resize', resize);
+
+    for (let i = 0; i < 65; i++) {
+      drops.push({
+        x: Math.random() * window.innerWidth,
+        y: Math.random() * window.innerHeight,
+        length: 12 + Math.random() * 18,
+        speed: 3 + Math.random() * 4.5,
+        opacity: 0.15 + Math.random() * 0.35,
+      });
+    }
+
+    const animate = () => {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      for (const d of drops) {
+        d.y += d.speed;
+        if (d.y > canvas.height) {
+          d.y = -d.length;
+          d.x = Math.random() * canvas.width;
+        }
+
+        ctx.strokeStyle = `rgba(148, 163, 184, ${d.opacity})`;
+        ctx.lineWidth = 1.4;
+        ctx.lineCap = 'round';
+        ctx.beginPath();
+        ctx.moveTo(d.x, d.y);
+        ctx.lineTo(d.x - 1.5, d.y + d.length);
+        ctx.stroke();
+      }
+
+      animationFrameId = window.requestAnimationFrame(animate);
+    };
+
+    animate();
+
+    return () => {
+      window.cancelAnimationFrame(animationFrameId);
+      window.removeEventListener('resize', resize);
+    };
+  }, []);
+
+  return (
+    <div
+      role="dialog"
+      aria-modal="true"
+      aria-label="No Rewards Earned Yet"
+      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#071930]/80 backdrop-blur-sm"
+    >
+      <canvas
+        ref={canvasRef}
+        className="fixed inset-0 pointer-events-none w-full h-full"
+      />
+
+      <div className="relative z-10 w-full max-w-md rounded-3xl bg-gradient-to-b from-[#0F294A] to-[#071930] border border-slate-500/30 p-7 sm:p-8 text-center text-white shadow-[0_24px_60px_-15px_rgba(0,0,0,0.65)]">
+        <button
+          type="button"
+          onClick={onClose}
+          aria-label="Close message"
+          className="absolute top-4 right-4 w-9 h-9 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center text-slate-300 transition-colors cursor-pointer"
+        >
+          <X className="w-4 h-4" />
+        </button>
+
+        <div className="w-16 h-16 rounded-2xl bg-slate-800/90 border border-slate-600/50 flex items-center justify-center mx-auto shadow-inner animate-pulse">
+          <Frown className="w-8 h-8 text-slate-300" />
+        </div>
+
+        <span className="mt-4 inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-slate-800/80 border border-slate-600/40 text-[11px] font-semibold text-slate-300 tracking-wide">
+          <span>Your Rewards Vault Is Empty</span>
+        </span>
+
+        <h2 className="mt-3 font-display text-2xl sm:text-3xl font-bold text-white">
+          Aww, No Rewards Yet, {clientName} 😔
+        </h2>
+
+        <p className="mt-2.5 text-sm text-slate-300 leading-relaxed">
+          Don’t miss out! <span className="text-[#F3D58D] font-semibold">Hurry up</span> — refer a friend or family member to TrueCare today and start earning <span className="text-emerald-300 font-semibold">extra LKR credits, loyalty points &amp; gift vouchers!</span>
+        </p>
+
+        <div className="mt-6 flex flex-col gap-2.5">
+          <button
+            type="button"
+            onClick={() => {
+              onClose();
+              onReferNow();
+            }}
+            className="w-full inline-flex items-center justify-center gap-2 min-h-[48px] px-6 rounded-xl bg-gradient-to-r from-[#D4A84F] to-[#F3D58D] text-[#071930] text-sm font-bold shadow-md hover:brightness-105 active:scale-[0.98] transition-all cursor-pointer"
+          >
+            <UserPlus className="w-4 h-4" />
+            <span>Refer a Friend &amp; Earn Now</span>
+            <ArrowRight className="w-4 h-4" />
+          </button>
+
+          <button
+            type="button"
+            onClick={onClose}
+            className="w-full min-h-[42px] px-4 rounded-xl text-xs font-semibold text-slate-300 hover:text-white hover:bg-white/5 transition-colors cursor-pointer"
+          >
+            View My Dashboard
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
 
 export const RewardsView: React.FC<RewardsViewProps> = ({
   initialLookupPhone = '',
@@ -39,6 +381,7 @@ export const RewardsView: React.FC<RewardsViewProps> = ({
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [verifiedData, setVerifiedData] = useState<ClientRewardsResponse | null>(null);
+  const [popupMode, setPopupMode] = useState<'none' | 'celebration' | 'no-rewards'>('none');
   const [copiedCode, setCopiedCode] = useState<string | null>(null);
 
   useEffect(() => {
@@ -68,8 +411,18 @@ export const RewardsView: React.FC<RewardsViewProps> = ({
       const response = await fetchClientRewards(cleanPhone, cleanPin);
       setVerifiedData(response);
       setPinInput('');
+
+      const hasActiveVouchers = response.rewards.some((v) => v.status !== 'Redeemed');
+      const hasEarnedRewards =
+        hasActiveVouchers ||
+        response.client.creditsLkr > 0 ||
+        response.client.points > 0 ||
+        response.rewards.length > 0;
+
+      setPopupMode(hasEarnedRewards ? 'celebration' : 'no-rewards');
     } catch (err: unknown) {
       setVerifiedData(null);
+      setPopupMode('none');
       const msg = err instanceof Error ? err.message : 'Invalid Phone Number or PIN';
       setErrorMsg(msg || 'Invalid Phone Number or PIN');
     } finally {
@@ -79,6 +432,7 @@ export const RewardsView: React.FC<RewardsViewProps> = ({
 
   const handleLockSession = () => {
     setVerifiedData(null);
+    setPopupMode('none');
     setPinInput('');
     setErrorMsg(null);
   };
@@ -95,8 +449,30 @@ export const RewardsView: React.FC<RewardsViewProps> = ({
 
   const formatLkr = (amount: number) => `LKR ${amount.toLocaleString('en-LK')}`;
 
+  const activeVouchersCount = verifiedData
+    ? verifiedData.rewards.filter((v) => v.status !== 'Redeemed').length
+    : 0;
+
   return (
     <div className="space-y-7">
+      {popupMode === 'celebration' && verifiedData && (
+        <FireworksCelebration
+          clientName={verifiedData.client.name}
+          activeVouchersCount={activeVouchersCount}
+          creditsLkr={verifiedData.client.creditsLkr}
+          points={verifiedData.client.points}
+          onClose={() => setPopupMode('none')}
+        />
+      )}
+
+      {popupMode === 'no-rewards' && verifiedData && (
+        <NoRewardsPrompt
+          clientName={verifiedData.client.name}
+          onClose={() => setPopupMode('none')}
+          onReferNow={onNavigateToRefer}
+        />
+      )}
+
       {/* Header */}
       <div>
         <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-50 border border-amber-200/80 text-[11px] font-semibold text-[#9A6B1C] tracking-wide">
