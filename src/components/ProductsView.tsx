@@ -72,13 +72,13 @@ function ProductBanner({ product }: { product: Product }) {
 
   if (product.imageUrl && !imgError) {
     return (
-      <div className="h-44 sm:h-48 w-full overflow-hidden bg-slate-100 border-b border-slate-100 relative">
+      <div className="w-full aspect-[16/10] sm:aspect-[16/9] overflow-hidden bg-[#0B2545]/5 border-b border-slate-100 relative flex items-center justify-center">
         <img
-          src={product.imageUrl}
+          src={product.imageUrl.trim()}
           alt={`${product.productName} — ${product.category}`}
           referrerPolicy="no-referrer"
           onError={() => setImgError(true)}
-          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+          className="w-full h-full object-contain group-hover:scale-105 transition-transform duration-500"
         />
         {product.status === 'Featured' && (
           <span className="absolute top-3 left-3 inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-[#0B2545]/90 backdrop-blur-xs text-[11px] font-semibold text-[#F3D58D] shadow-xs">
